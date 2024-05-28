@@ -36,13 +36,12 @@ if st.sidebar.button("Add Measurement"):
 st.write("Measurements:")
 measurements_df = pd.DataFrame(st.session_state['measurements'])
 
-# Sort measurements by frequency
-measurements_df.sort_values(by='Frequency', inplace=True)
-
-st.write(measurements_df)
-
-# Calculate gain and plot Bode diagram if there are measurements
 if not measurements_df.empty:
+    # Sort measurements by frequency
+    measurements_df.sort_values(by='Frequency', inplace=True)
+    st.write(measurements_df)
+
+    # Calculate gain and plot Bode diagram if there are measurements
     measurements_df['Gain (dB)'] = measurements_df.apply(
         lambda row: calculate_gain(input_voltage, row['Output Voltage']), axis=1)
 
@@ -51,12 +50,11 @@ if not measurements_df.empty:
     minus_3db_gain = max_gain - 3
 
     # Interpolating to find the frequency corresponding to the -3dB point
-    sorted_df = measurements_df.sort_values(by='Frequency')
-    minus_3db_freq = np.interp(minus_3db_gain, sorted_df['Gain (dB)'], sorted_df['Frequency'])
+    minus_3db_freq = np.interp(minus_3db_gain, measurements_df['Gain (dB)'], measurements_df['Frequency'])
 
     # Plot Bode diagram
     fig, ax = plt.subplots()
-    ax.semilogx(sorted_df['Frequency'], sorted_df['Gain (dB)'])
+    ax.semilogx(measurements_df['Frequency'], measurements_df['Gain (dB)'])
     ax.set_title('Bode Diagram')
     ax.set_xlabel('Frequency (Hz)')
     ax.set_ylabel('Gain (dB)')
@@ -79,7 +77,11 @@ if not measurements_df.empty:
 
 # Save to CSV
 file_name = st.text_input("Enter file name to save CSV", "measurements.csv")
-if st.button("Save to CSV"):
+if st.button("Save to CSV") and not measurements_df.empty:
     csv_path = os.path.join("saved_csv", file_name)
     measurements_df.to_csv(csv_path, index=False)
     st.success(f"File saved as {csv_path}")
+
+
+
+st.sidebar.write("© Copyright by: Alexander Kometer")
